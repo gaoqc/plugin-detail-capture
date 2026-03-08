@@ -1,0 +1,23 @@
+{
+  "manifest_version": 3,
+  "name": "plugin-info-capture",
+  "version": "1.5",
+  "description": "Chrome 商店数据提取助手 (CWS Data Pro) - 提取插件详情或列表数据并格式化为 TSV",
+  "permissions": [
+    "scripting",
+    "activeTab",
+    "offscreen",
+    "clipboardWrite",
+    "notifications",
+    "pageCapture"
+  ],
+  "host_permissions": [
+    "*://chromewebstore.google.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "提取数据"
+  }
+}
