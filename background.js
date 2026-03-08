@@ -90,15 +90,29 @@ chrome.action.onClicked.addListener(async (tab) => {
                     showNotification("提取失败", "后台通信错误: " + chrome.runtime.lastError.message, true);
                 } else if (response && response.success) {
                     showNotification("提取成功", `已提取 ${response.count} 条数据并复制到剪贴板！`);
+                    
+                    // 设置角标提示
+                    chrome.action.setBadgeText({text: 'OK', tabId: tab.id});
+                    chrome.action.setBadgeBackgroundColor({color: '#4CAF50', tabId: tab.id});
+                    
+                    // 3秒后清除角标
+                    setTimeout(() => {
+                        chrome.action.setBadgeText({text: '', tabId: tab.id});
+                    }, 3000);
                 } else {
                     const errorMsg = response && response.error ? response.error : "未知错误";
                     showNotification("提取失败", errorMsg, true);
                 }
+                
+                // 关闭 Offscreen 文档，确保下次重新创建，避免状态残留
+                chrome.offscreen.closeDocument().catch((err) => console.log("Failed to close offscreen document:", err));
             });
         });
 
     } catch (err) {
         console.error("Unexpected error in capture:", err);
         showNotification("提取失败", "系统错误: " + err.message, true);
+        // 尝试关闭 Offscreen 文档
+        chrome.offscreen.closeDocument().catch(() => {});
     }
 });

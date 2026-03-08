@@ -134,38 +134,68 @@ function extractDetail(doc, currentUrl) {
     }
 
     // 3. 评分人数
-    const ratingCountEl = findElementByText(doc, 'span, div, a', ['ratings', '个评分', '份评分']);
-    if (ratingCountEl) {
-        const match = ratingCountEl.textContent.match(/([\d,]+)/);
-        data['评分人数'] = match ? match[1].replace(/,/g, '') : '';
+    // 优先使用用户提供的选择器: .xJEoWe (p标签)
+    const ratingCountElUser = doc.querySelector('p.xJEoWe');
+    if (ratingCountElUser) {
+         const match = ratingCountElUser.textContent.match(/([\d,]+)/);
+         data['评分人数'] = match ? match[1].replace(/,/g, '') : '';
     } else {
-        data['评分人数'] = '';
+        const ratingCountEl = findElementByText(doc, 'span, div, a', ['ratings', '个评分', '份评分']);
+        if (ratingCountEl) {
+            const match = ratingCountEl.textContent.match(/([\d,]+)/);
+            data['评分人数'] = match ? match[1].replace(/,/g, '') : '';
+        } else {
+            data['评分人数'] = '';
+        }
     }
 
     // 4. 安装人数
-    const userEl = findElementByText(doc, 'span, div', ['users', '位用户', 'users', 'Users']);
-    if (userEl) {
-        const text = userEl.textContent;
-        const match = text.match(/([\d,]+\+?)/);
-        data['安装人数'] = match ? match[1] : text.trim();
+    // 优先使用用户提供的选择器: .F9iKBc
+    const userElUser = doc.querySelector('.F9iKBc');
+    if (userElUser) {
+        // 提取文本中的人数部分，例如 "8,000 users"
+        // 文本可能包含 "ExtensionWorkflow & Planning8,000 users"
+        // 我们查找数字后跟 "users" 或 "位用户"
+        const text = userElUser.textContent;
+        const match = text.match(/([\d,]+\+?)\s*(users|位用户)/i);
+        data['安装人数'] = match ? match[1] : '';
     } else {
-        data['安装人数'] = '';
+        const userEl = findElementByText(doc, 'span, div', ['users', '位用户', 'users', 'Users']);
+        if (userEl) {
+            const text = userEl.textContent;
+            const match = text.match(/([\d,]+\+?)/);
+            data['安装人数'] = match ? match[1] : text.trim();
+        } else {
+            data['安装人数'] = '';
+        }
     }
 
     // 5. 分类
-    const breadcrumbs = doc.querySelectorAll('nav ol li, nav ul li, [aria-label="Breadcrumb"] li');
-    if (breadcrumbs.length > 0) {
-        const cats = Array.from(breadcrumbs).map(el => el.textContent.trim()).filter(t => t !== 'Home' && t !== '首页');
-        data['分类'] = cats.length > 0 ? cats[cats.length - 1] : '';
+    // 优先使用用户提供的选择器: .gqpEIe.bgp7Ye
+    const catElUser = doc.querySelector('.gqpEIe.bgp7Ye');
+    if (catElUser) {
+        data['分类'] = catElUser.textContent.trim();
     } else {
-        const catLink = doc.querySelector('a[href*="/category/"]');
-        data['分类'] = catLink ? catLink.textContent.trim() : '';
+        const breadcrumbs = doc.querySelectorAll('nav ol li, nav ul li, [aria-label="Breadcrumb"] li');
+        if (breadcrumbs.length > 0) {
+            const cats = Array.from(breadcrumbs).map(el => el.textContent.trim()).filter(t => t !== 'Home' && t !== '首页');
+            data['分类'] = cats.length > 0 ? cats[cats.length - 1] : '';
+        } else {
+            const catLink = doc.querySelector('a[href*="/category/"]');
+            data['分类'] = catLink ? catLink.textContent.trim() : '';
+        }
     }
 
     // 6. Overview (简介)
-    const metaDesc = doc.querySelector('meta[name="description"]');
-    let overview = metaDesc ? metaDesc.content.trim() : '';
-    data['Overview'] = overview;
+    // 优先使用用户提供的选择器: div[jsname="ij8cu"] p
+    const overviewPars = doc.querySelectorAll('div[jsname="ij8cu"] p');
+    if (overviewPars.length > 0) {
+        data['Overview'] = Array.from(overviewPars).map(p => p.textContent.trim()).join('\n');
+    } else {
+        const metaDesc = doc.querySelector('meta[name="description"]');
+        let overview = metaDesc ? metaDesc.content.trim() : '';
+        data['Overview'] = overview;
+    }
 
     // 7. 版本/更新日期
     data['更新日期'] = findValueByLabel(doc, ['Updated', '更新日期', 'Last updated']);

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "plugin-detail-capture",
-  "version": "1.5",
+  "version": "1.9",
   "description": "Chrome 商店数据提取助手 (CWS Data Pro) - 提取插件详情或列表数据并格式化为 TSV",
   "permissions": [
     "scripting",
