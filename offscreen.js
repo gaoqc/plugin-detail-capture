@@ -62,9 +62,16 @@ function handleParseHtml(htmlContent, url, mode, isMhtml) {
             const tsv = formatForExcel(data);
             
             const textArea = document.getElementById('clipboard-target');
+            textArea.value = ''; // 清空旧数据
             textArea.value = tsv;
             textArea.select();
-            document.execCommand('copy'); 
+            
+            const copySuccess = document.execCommand('copy'); 
+            
+            if (!copySuccess) {
+                console.error("Clipboard copy failed");
+                return { success: false, error: "Clipboard copy failed" };
+            }
             
             return { success: true, count: data.length };
         } else {

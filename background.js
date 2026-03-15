@@ -47,6 +47,7 @@ chrome.action.onClicked.addListener(async (tab) => {
         await ensureOffscreenDocument();
     } catch (err) {
         console.error("Failed to create offscreen document", err);
+        // 如果错误是"Only a single offscreen document..."，说明文档已存在，可以忽略
         if (!err.message.includes("Only a single offscreen document")) {
             showNotification("系统错误", "无法初始化后台解析服务: " + err.message, true);
             return;
@@ -104,15 +105,14 @@ chrome.action.onClicked.addListener(async (tab) => {
                     showNotification("提取失败", errorMsg, true);
                 }
                 
-                // 关闭 Offscreen 文档，确保下次重新创建，避免状态残留
-                chrome.offscreen.closeDocument().catch((err) => console.log("Failed to close offscreen document:", err));
+                // 暂时保留 Offscreen 文档，避免频繁创建销毁带来的性能和状态问题
+                // 但如果在下一次点击时发现状态不一致，ensureOffscreenDocument 会处理
+                // chrome.offscreen.closeDocument().catch((err) => console.log("Failed to close offscreen document:", err));
             });
         });
 
     } catch (err) {
         console.error("Unexpected error in capture:", err);
         showNotification("提取失败", "系统错误: " + err.message, true);
-        // 尝试关闭 Offscreen 文档
-        chrome.offscreen.closeDocument().catch(() => {});
     }
 });
